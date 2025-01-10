@@ -1,0 +1,299 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Helpers\Helpers;
+use App\Http\Controllers\Controller;
+use App\Http\Repositories\User\UserRepository;
+use App\Http\Resources\UserResource;
+use App\Models\Applicant;
+use App\Models\User;
+use App\Traits\ApiResponse;
+use Exception;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Validation\ValidationException;
+
+class UserController extends Controller
+{
+    use ApiResponse;
+
+    protected $userRepository;
+    function __construct(UserRepository $userRepository)
+    {
+        $this->userRepository = $userRepository;
+    }
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index(Request $request)
+    {
+        $data =  $this->userRepository->all();
+
+        return $this->successResponse(UserResource::collection($data));
+    }
+
+
+    public function show($jobId, $userId) {}
+
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        try {
+            $data = $this->userRepository->create($request->all());
+            return $this->successResponse(UserResource::make($data));
+        } catch (ValidationException $e) {
+            return $this->errorResponse('Validation Error: ' . $e->getMessage(), 422);
+        } catch (AuthenticationException $e) {
+            return $this->errorResponse('Authentication Error: ' . $e->getMessage(), 401);
+        } catch (Exception $e) {
+            return $this->errorResponse('An unexpected error occurred.', 500);
+        }
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        try {
+            $user = $this->userRepository->find($id);
+            $data = $user->update($request->all());
+            return $this->successResponse($data);
+        } catch (ValidationException $e) {
+            return $this->errorResponse('Validation Error: ' . $e->getMessage(), 422);
+        } catch (AuthenticationException $e) {
+            return $this->errorResponse('Authentication Error: ' . $e->getMessage(), 401);
+        } catch (Exception $e) {
+            return $this->errorResponse('An unexpected error occurred.', 500);
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        try {
+            $user = $this->userRepository->find($id);
+            $data = $user->delete();
+            return $this->successResponse($data);
+        } catch (ValidationException $e) {
+            return $this->errorResponse('Validation Error: ' . $e->getMessage(), 422);
+        } catch (AuthenticationException $e) {
+            return $this->errorResponse('Authentication Error: ' . $e->getMessage(), 401);
+        } catch (Exception $e) {
+            return $this->errorResponse('An unexpected error occurred.', 500);
+        }
+    }
+
+
+    public function getUserInfo(Request $request)
+    {
+        // Define the API URL
+        $panelUrl = 'http://tamasha-tv.com:25461';
+
+        // Validate the input
+        $validated = $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        // Prepare the POST data
+        $postData = [
+            'username' => $validated['username'],
+            'password' => $validated['password'],
+        ];
+
+        try {
+            // Make the POST request
+            $response = Http::asForm()->post($panelUrl, $postData);
+
+            // Check if the response is successful
+            if ($response->successful()) {
+                $apiResult = $response->json();
+
+                if (!empty($apiResult['result'])) {
+                    $userInfo = $apiResult['user_info'];
+
+                    return response()->json([
+                        'user_id' => $userInfo['id'] ?? null,
+                        'username' => $userInfo['username'] ?? null,
+                        'password' => $userInfo['password'] ?? null,
+                        'expire_date' => empty($userInfo['exp_date'])
+                            ? 'Unlimited'
+                            : date('Y-m-d', $userInfo['exp_date']),
+                        'max_connections' => $userInfo['max_connections'] ?? 0,
+                    ]);
+                } else {
+                    return response()->json(['error' => 'API response indicates failure.'], 400);
+                }
+            }
+
+            return response()->json(['error' => 'Failed to fetch data from the API.'], 500);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function updateUser(Request $request)
+    {
+        // Define the API panel URL
+        $panelUrl = 'http://tamasha-tv.com:25461';
+
+        // Validate input from the request
+        $validated = $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+            'period' => 'required|string',
+        ]);
+
+        $username = $validated['username'];
+        $password = $validated['password'];
+        $period = $validated['period'];
+
+        // Configuration settings
+        $maxConnections = 1;
+        $userUpdateData = [
+            'max_connections' => $maxConnections,
+            'is_restreamer' => 0,
+        ];
+
+        try {
+            // Step 1: Fetch current user data from the API
+            $userResponse = Http::get("$panelUrl?action=user&sub=info", [
+                'username' => $username,
+                'password' => $password,
+            ]);
+
+            if ($userResponse->failed()) {
+                return response()->json(['error' => 'Failed to fetch current user data.'], 500);
+            }
+
+            $userData = $userResponse->json();
+
+            if (!isset($userData['user_info']['exp_date'])) {
+                return response()->json(['error' => 'Unable to retrieve user\'s current expiration date.'], 400);
+            }
+
+            $currentExpDate = $userData['user_info']['exp_date'];
+            $currentTime = time();
+
+            // Step 2: Calculate the new expiration date
+            if ($currentExpDate < $currentTime) {
+                $newExpDate = strtotime($period, $currentTime);
+            } else {
+                $newExpDate = strtotime($period, $currentExpDate);
+            }
+
+            if ($newExpDate === false) {
+                return response()->json(['error' => 'Invalid period format.'], 400);
+            }
+
+            // Add the new expiration date to the user update data
+            $userUpdateData['exp_date'] = $newExpDate;
+
+            // Step 3: Prepare and send the POST request to update the user
+            $postResponse = Http::asForm()->post("$panelUrl?action=user&sub=edit", [
+                'username' => $username,
+                'password' => $password,
+                'user_data' => json_encode($userUpdateData),
+            ]);
+
+            if ($postResponse->failed()) {
+                return response()->json(['error' => 'API request failed.'], 500);
+            }
+
+            $apiResult = $postResponse->json();
+
+            if (isset($apiResult['error'])) {
+                return response()->json(['error' => 'API Error: ' . $apiResult['error']], 400);
+            }
+
+            // Success response
+            return response()->json(['message' => 'User updated successfully.']);
+
+        } catch (\Exception $e) {
+            // Handle and log the exception
+            \Log::error($e->getMessage());
+            return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function createUser(Request $request)
+    {
+        // Define the API panel URL
+        $panelUrl = 'http://tamasha-tv.com:25461/api.php';
+
+        // Validate and sanitize input from the request
+        $validated = $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+            'period' => 'required|string',
+        ]);
+
+        $username = $validated['username'];
+        $password = $validated['password'];
+        $period = $validated['period'];
+
+        // Convert expire_period to a timestamp
+        $expireDate = strtotime($period);
+        if ($expireDate === false) {
+            return response()->json(['error' => 'Invalid period format.'], 400);
+        }
+
+        // Configuration settings
+        $maxConnections = 1;
+        $enabled = 1;
+        $memberId = 1;
+        $adminEnabled = 1;
+        $bouquetIds = [1, 2, 4, 5, 7, 8];
+
+        // Prepare POST data
+        $postData = [
+            'user_data' => [
+                'username' => $username,
+                'password' => $password,
+                'max_connections' => $maxConnections,
+                'admin_enabled' => $adminEnabled,
+                'enabled' => $enabled,
+                'member_id' => $memberId,
+                'exp_date' => $expireDate,
+                'bouquet' => json_encode($bouquetIds),
+            ],
+        ];
+
+        try {
+            // Make the API request
+            $response = Http::asForm()->post("$panelUrl?action=user&sub=create", $postData);
+
+            // Check if the request failed
+            if ($response->failed()) {
+                return response()->json(['error' => 'API request failed. Could not connect to the API.'], 500);
+            }
+
+            // Decode the JSON response
+            $apiResult = $response->json();
+
+            // Check if the API response contains an error
+            if (isset($apiResult['error'])) {
+                return response()->json(['error' => 'API Error: ' . $apiResult['error']], 400);
+            }
+
+            // Success: Return a success response
+            return response()->json(['message' => 'User created successfully.']);
+
+        } catch (\Exception $e) {
+            // Log and return the exception message
+            \Log::error($e->getMessage());
+            return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
+        }
+    }
+}
