@@ -10,17 +10,6 @@ services:
       - "8001:9000"
     volumes:
       - ./docker/:/var/www/html
-    environment:
-      - APP_ENV=local
-      - APP_DEBUG=true
-      - APP_KEY=
-      - APP_URL=http://localhost
-      - DB_CONNECTION=mysql
-      - DB_HOST=db
-      - DB_PORT=3306
-      - DB_DATABASE=...
-      - DB_USERNAME=...
-      - DB_PASSWORD=...
     depends_on:
       - db
 
