@@ -7,9 +7,17 @@ services:
       dockerfile: Dockerfile
     container_name: laravel_app
     ports:
-      - "8001:9000"
+      - "9002:9000"
+      - "9001:80"
     volumes:
       - ./docker/:/var/www/html
+      - ./php-conf/php-fpm.conf:/usr/local/etc/php-fpm.conf
+      - ./php-conf/www.conf:/usr/local/etc/php-fpm.d/www.conf
+      - ./php-conf/php.ini:/usr/local/etc/php/php.ini
+      - ./php-conf/docker.conf:/usr/local/etc/php-fpm.d/docker.conf
+      - ./nginx-conf/default.conf:/etc/nginx/sites-enabled/default.conf
+      - ./nginx-conf/mime.types:/etc/nginx/mime.types
+      - ./nginx-conf/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
       db:
         condition: service_healthy
@@ -33,4 +41,3 @@ services:
 
 volumes:
   db_data:
-
