@@ -29,6 +29,8 @@ WORKDIR /var/www/html
 
 COPY . .
 
+RUN composer install --no-interaction --no-scripts --no-autoloader
+
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
