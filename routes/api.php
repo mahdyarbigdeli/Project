@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
  |
  */
 
-Route::post('/login', [AuthController::class, 'login'])->name('login');
+// Route::post('/login', [AuthController::class, 'login'])->name('login');
 
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -34,9 +34,9 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 
 // Route::group(['prefix' => 'user', 'as' => 'user.'], function(){
 Route::resource('/users', UserController::class);
-Route::post('/user-info', [UserController::class, 'getUserInfo']);
+Route::post('/user/info', [UserController::class, 'getUserInfo']);
 Route::post('/user/create', [UserController::class, 'createUser']);
-Route::post('/user/update', [SubscriptionController::class, 'updateUser']);
+Route::patch('/user/update', [UserController::class, 'updateUser']);
 
 Route::get('/subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
 Route::get('/subscriptions/buy/{id}', [SubscriptionController::class, 'buy'])->name('subscriptions.buy');

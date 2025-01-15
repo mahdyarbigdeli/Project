@@ -98,7 +98,8 @@ class UserController extends Controller
     public function getUserInfo(Request $request)
     {
         // Define the API URL
-        $panelUrl = 'http://tamasha-tv.com:25461';
+        // $panelUrl = 'http://tamasha-tv.com:25461?userinfo.php';
+        $panelUrl = "http://tamasha-tv.com:25461/api.php?action=user&sub=info";
 
         // Validate the input
         $validated = $request->validate([
@@ -115,7 +116,6 @@ class UserController extends Controller
         try {
             // Make the POST request
             $response = Http::asForm()->post($panelUrl, $postData);
-
             // Check if the response is successful
             if ($response->successful()) {
                 $apiResult = $response->json();
@@ -154,6 +154,7 @@ class UserController extends Controller
             'password' => 'required|string',
             'period' => 'required|string',
         ]);
+        dd($validated);
 
         $username = $validated['username'];
         $password = $validated['password'];
@@ -230,7 +231,12 @@ class UserController extends Controller
     public function createUser(Request $request)
     {
         // Define the API panel URL
-        $panelUrl = 'http://tamasha-tv.com:25461/api.php';
+        $panelUrl = 'http://tamasha-tv.com:25461/';
+        $endpoint = "createuser.php?action=user&sub=create";
+
+        $headers = [
+            'Content-Type' => 'application/json',
+        ];
 
         // Validate and sanitize input from the request
         $validated = $request->validate([
@@ -272,7 +278,8 @@ class UserController extends Controller
 
         try {
             // Make the API request
-            $response = Http::asForm()->post("$panelUrl?action=user&sub=create", $postData);
+            // $response = Http::asForm()->post("$panelUrl?action=user&sub=create", $postData);
+            $response = Http::withHeaders($headers)->post($panelUrl . $endpoint, $postData);
 
             // Check if the request failed
             if ($response->failed()) {
