@@ -98,8 +98,7 @@ class UserController extends Controller
     public function getUserInfo(Request $request)
     {
         // Define the API URL
-        // $panelUrl = 'http://tamasha-tv.com:25461?userinfo.php';
-        $panelUrl = "http://tamasha-tv.com:25461/api.php?action=user&sub=info";
+        $panelUrl = "http://tamasha-tv.com:25461/userinfo.php";
 
         // Validate the input
         $validated = $request->validate([
@@ -116,20 +115,20 @@ class UserController extends Controller
         try {
             // Make the POST request
             $response = Http::asForm()->post($panelUrl, $postData);
+            $response = Http::asForm()->post($panelUrl . "?username=" . $validated['username'] . "&password=" . $validated['password'], $postData);
             // Check if the response is successful
             if ($response->successful()) {
                 $apiResult = $response->json();
-
-                if (!empty($apiResult['result'])) {
-                    $userInfo = $apiResult['user_info'];
+                if (!empty($apiResult['status']) && $apiResult['data']) {
+                    $userInfo = $apiResult['data'];
 
                     return response()->json([
                         'user_id' => $userInfo['id'] ?? null,
                         'username' => $userInfo['username'] ?? null,
                         'password' => $userInfo['password'] ?? null,
-                        'expire_date' => empty($userInfo['exp_date'])
+                        'expire_date' => empty($userInfo['expire_date'])
                             ? 'Unlimited'
-                            : date('Y-m-d', $userInfo['exp_date']),
+                            : $userInfo['expire_date'],
                         'max_connections' => $userInfo['max_connections'] ?? 0,
                     ]);
                 } else {
@@ -220,7 +219,6 @@ class UserController extends Controller
 
             // Success response
             return response()->json(['message' => 'User updated successfully.']);
-
         } catch (\Exception $e) {
             // Handle and log the exception
             \Log::error($e->getMessage());
@@ -296,7 +294,6 @@ class UserController extends Controller
 
             // Success: Return a success response
             return response()->json(['message' => 'User created successfully.']);
-
         } catch (\Exception $e) {
             // Log and return the exception message
             \Log::error($e->getMessage());
