@@ -42,7 +42,6 @@ class SubscriptionController extends Controller
                 "return_url" => route('subscriptions.success'), // Production success URL
             ]
         ]);
-
         if (isset($order['links'][1]['href'])) {
             return response()->json(['redirect_url' => $order['links'][1]['href']], 200);
         }

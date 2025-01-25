@@ -34,6 +34,7 @@ use Illuminate\Support\Facades\Route;
 
 // Route::group(['prefix' => 'user', 'as' => 'user.'], function(){
 Route::resource('/users', UserController::class);
+Route::post('/user/auth', [UserController::class, 'auth']);
 Route::post('/user/info', [UserController::class, 'getUserInfo']);
 Route::post('/user/create', [UserController::class, 'createUser']);
 Route::patch('/user/update', [UserController::class, 'updateUser']);

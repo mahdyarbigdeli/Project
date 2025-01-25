@@ -94,6 +94,42 @@ class UserController extends Controller
         }
     }
 
+    public function auth(Request $request)
+    {
+        // Define the API URL
+        $panelUrl = "http://tamasha-tv.com:25461/player_api.php";
+
+        // Validate the input
+        $validated = $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        // Prepare the POST data
+        $postData = [
+            'username' => $validated['username'],
+            'password' => $validated['password'],
+        ];
+
+        try {
+            // Make the POST request
+            $response = Http::asForm()->post($panelUrl . "?username=" . $validated['username'] . "&password=" . $validated['password'], $postData);
+            // Check if the response is successful
+            if ($response->successful()) {
+                $apiResult = $response->json();
+                if (!empty($apiResult['user_info'])) {
+                    return response()->json(['data' => $apiResult]);
+                } else {
+                    return response()->json(['error' => 'API response indicates failure.'], 400);
+                }
+            }
+
+            return response()->json(['error' => 'Failed to fetch data from the API.'], 500);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
+        }
+    }
+
 
     public function getUserInfo(Request $request)
     {
@@ -114,7 +150,6 @@ class UserController extends Controller
 
         try {
             // Make the POST request
-            $response = Http::asForm()->post($panelUrl, $postData);
             $response = Http::asForm()->post($panelUrl . "?username=" . $validated['username'] . "&password=" . $validated['password'], $postData);
             // Check if the response is successful
             if ($response->successful()) {
@@ -123,13 +158,15 @@ class UserController extends Controller
                     $userInfo = $apiResult['data'];
 
                     return response()->json([
-                        'user_id' => $userInfo['id'] ?? null,
-                        'username' => $userInfo['username'] ?? null,
-                        'password' => $userInfo['password'] ?? null,
-                        'expire_date' => empty($userInfo['expire_date'])
-                            ? 'Unlimited'
-                            : $userInfo['expire_date'],
-                        'max_connections' => $userInfo['max_connections'] ?? 0,
+                        'data' => [
+                            'user_id' => $userInfo['id'] ?? null,
+                            'username' => $userInfo['username'] ?? null,
+                            'password' => $userInfo['password'] ?? null,
+                            'expire_date' => empty($userInfo['expire_date'])
+                                ? 'Unlimited'
+                                : $userInfo['expire_date'],
+                            'max_connections' => $userInfo['max_connections'] ?? 0
+                        ]
                     ]);
                 } else {
                     return response()->json(['error' => 'API response indicates failure.'], 400);
@@ -145,7 +182,7 @@ class UserController extends Controller
     public function updateUser(Request $request)
     {
         // Define the API panel URL
-        $panelUrl = 'http://tamasha-tv.com:25461';
+        $panelUrl = 'http://tamasha-tv.com:25461?edituser.php';
 
         // Validate input from the request
         $validated = $request->validate([
@@ -153,7 +190,6 @@ class UserController extends Controller
             'password' => 'required|string',
             'period' => 'required|string',
         ]);
-        dd($validated);
 
         $username = $validated['username'];
         $password = $validated['password'];
@@ -168,44 +204,36 @@ class UserController extends Controller
 
         try {
             // Step 1: Fetch current user data from the API
-            $userResponse = Http::get("$panelUrl?action=user&sub=info", [
-                'username' => $username,
-                'password' => $password,
-            ]);
+            // $userResponse = Http::get("$panelUrl?action=user&sub=info", [
+            //     'username' => $username,
+            //     'password' => $password,
+            // ]);
+            $postResponse = Http::asForm()->post($panelUrl . "?username=" . $username . "&password=" . $password . "&period=" . $period);
 
-            if ($userResponse->failed()) {
-                return response()->json(['error' => 'Failed to fetch current user data.'], 500);
-            }
-
-            $userData = $userResponse->json();
-
-            if (!isset($userData['user_info']['exp_date'])) {
-                return response()->json(['error' => 'Unable to retrieve user\'s current expiration date.'], 400);
-            }
-
-            $currentExpDate = $userData['user_info']['exp_date'];
-            $currentTime = time();
+            // if ($userResponse->failed()) {
+            //     return response()->json(['error' => 'Failed to fetch current user data.'], 500);
+            // }
 
             // Step 2: Calculate the new expiration date
-            if ($currentExpDate < $currentTime) {
-                $newExpDate = strtotime($period, $currentTime);
-            } else {
-                $newExpDate = strtotime($period, $currentExpDate);
-            }
+            // if ($currentExpDate < $currentTime) {
+            //     $newExpDate = strtotime($period, $currentTime);
+            // } else {
+            //     $newExpDate = strtotime($period, $currentExpDate);
+            // }
 
-            if ($newExpDate === false) {
-                return response()->json(['error' => 'Invalid period format.'], 400);
-            }
+            // if ($newExpDate === false) {
+            //     return response()->json(['error' => 'Invalid period format.'], 400);
+            // }
 
             // Add the new expiration date to the user update data
-            $userUpdateData['exp_date'] = $newExpDate;
+            // $userUpdateData['exp_date'] = $newExpDate;
 
             // Step 3: Prepare and send the POST request to update the user
-            $postResponse = Http::asForm()->post("$panelUrl?action=user&sub=edit", [
-                'username' => $username,
-                'password' => $password,
-                'user_data' => json_encode($userUpdateData),
-            ]);
+            // $postResponse = Http::asForm()->post("$panelUrl?action=user&sub=edit", [
+            //     'username' => $username,
+            //     'password' => $password,
+            //     'user_data' => json_encode($userUpdateData),
+            // ]);
 
             if ($postResponse->failed()) {
                 return response()->json(['error' => 'API request failed.'], 500);
@@ -262,22 +290,24 @@ class UserController extends Controller
 
         // Prepare POST data
         $postData = [
-            'user_data' => [
-                'username' => $username,
-                'password' => $password,
-                'max_connections' => $maxConnections,
-                'admin_enabled' => $adminEnabled,
-                'enabled' => $enabled,
-                'member_id' => $memberId,
-                'exp_date' => $expireDate,
-                'bouquet' => json_encode($bouquetIds),
-            ],
+            // 'user_data' => [
+            'username' => $username,
+            'password' => $password,
+            'max_connections' => $maxConnections,
+            'admin_enabled' => $adminEnabled,
+            'enabled' => $enabled,
+            'member_id' => $memberId,
+            'exp_date' => $expireDate,
+            'bouquet' => json_encode($bouquetIds),
+            'period' => $period
+            // ],
         ];
 
         try {
             // Make the API request
             // $response = Http::asForm()->post("$panelUrl?action=user&sub=create", $postData);
-            $response = Http::withHeaders($headers)->post($panelUrl . $endpoint, $postData);
+            // $response = Http::withHeaders($headers)->post($panelUrl . $endpoint, $postData);
+            $response = Http::asForm()->post($panelUrl . "?username=" . $validated['username'] . "&password=" . $validated['password'] . "&period=" . $period, $postData);
 
             // Check if the request failed
             if ($response->failed()) {
@@ -296,7 +326,7 @@ class UserController extends Controller
             return response()->json(['message' => 'User created successfully.']);
         } catch (\Exception $e) {
             // Log and return the exception message
-            \Log::error($e->getMessage());
+            // \Log::error($e->getMessage());
             return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
         }
     }
