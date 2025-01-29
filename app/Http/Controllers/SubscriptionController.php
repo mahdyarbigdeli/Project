@@ -64,8 +64,10 @@ class SubscriptionController extends Controller
         return response()->json(['error' => 'Payment not completed'], 400);
     }
 
-    public function cancel()
+    public function cancel(Request $request)
     {
-        return redirect()->route('subscriptions.index')->with('error', 'Payment was cancelled.');
+        return redirect('/')->with('token', $request?->token);
+
+        // return redirect()->route('subscriptions.index')->with('error', 'Payment was cancelled.');
     }
 }
