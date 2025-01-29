@@ -66,7 +66,7 @@ class SubscriptionController extends Controller
 
     public function cancel(Request $request)
     {
-        return redirect('/?token=' . $request?->token); //->with('token', $request?->token);
+        return redirect('/subscriptions/cancel?token=' . $request?->token); //->with('token', $request?->token);
 
         // return redirect()->route('subscriptions.index')->with('error', 'Payment was cancelled.');
     }
