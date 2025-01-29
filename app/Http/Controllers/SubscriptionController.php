@@ -25,7 +25,7 @@ class SubscriptionController extends Controller
         $provider = new PayPalClient();
         $provider->setApiCredentials(config('paypal'));
         $provider->getAccessToken();
-
+        dd($provider->getAccessToken());
         $order = $provider->createOrder([
             "intent" => "CAPTURE",
             "purchase_units" => [
@@ -66,7 +66,7 @@ class SubscriptionController extends Controller
 
     public function cancel(Request $request)
     {
-        return redirect('/')->with('token', $request?->token);
+        return redirect('/?token=' . $request?->token); //->with('token', $request?->token);
 
         // return redirect()->route('subscriptions.index')->with('error', 'Payment was cancelled.');
     }
