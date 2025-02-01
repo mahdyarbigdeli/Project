@@ -25,7 +25,6 @@ class SubscriptionController extends Controller
         $provider = new PayPalClient();
         $provider->setApiCredentials(config('paypal'));
         $provider->getAccessToken();
-        dd($provider->getAccessToken());
         $order = $provider->createOrder([
             "intent" => "CAPTURE",
             "purchase_units" => [
