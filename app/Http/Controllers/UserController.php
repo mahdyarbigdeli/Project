@@ -154,9 +154,8 @@ class UserController extends Controller
             // Check if the response is successful
             if ($response->successful()) {
                 $apiResult = $response->json();
-                if (!empty($apiResult['status']) && $apiResult['data']) {
+                if (!empty($apiResult['status']) && isset($apiResult['data'])) {
                     $userInfo = $apiResult['data'];
-
                     return response()->json([
                         'data' => [
                             'user_id' => $userInfo['id'] ?? null,
@@ -169,7 +168,7 @@ class UserController extends Controller
                         ]
                     ]);
                 } else {
-                    return response()->json(['error' => 'API response indicates failure.'], 400);
+                    return response()->json(['error' => $apiResult['message'] ], 400);
                 }
             }
 
@@ -249,7 +248,7 @@ class UserController extends Controller
             return response()->json(['message' => 'User updated successfully.']);
         } catch (\Exception $e) {
             // Handle and log the exception
-            \Log::error($e->getMessage());
+            // \Log::error($e->getMessage());
             return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
         }
     }
@@ -257,7 +256,7 @@ class UserController extends Controller
     public function createUser(Request $request)
     {
         // Define the API panel URL
-        $panelUrl = 'http://tamasha-tv.com:25461/';
+        $panelUrl = 'http://tamasha-tv.com:25461/createuser.php';
         $endpoint = "createuser.php?action=user&sub=create";
 
         $headers = [
@@ -321,9 +320,8 @@ class UserController extends Controller
             if (isset($apiResult['error'])) {
                 return response()->json(['error' => 'API Error: ' . $apiResult['error']], 400);
             }
-
             // Success: Return a success response
-            return response()->json(['message' => 'User created successfully.']);
+            return response()->json(['message' => $apiResult['message'], 'data' =>  $apiResult['data'],'status' => $apiResult['success'] ]);
         } catch (\Exception $e) {
             // Log and return the exception message
             // \Log::error($e->getMessage());
