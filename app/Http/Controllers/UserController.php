@@ -168,7 +168,7 @@ class UserController extends Controller
                         ]
                     ]);
                 } else {
-                    return response()->json(['error' => $apiResult['message'] ], 400);
+                    return response()->json(['error' => $apiResult['message']], 400);
                 }
             }
 
@@ -263,15 +263,17 @@ class UserController extends Controller
             'Content-Type' => 'application/json',
         ];
 
+        $randomNumber = str_pad(mt_rand(0, 999999999), 9, '0', STR_PAD_LEFT);
+
         // Validate and sanitize input from the request
         $validated = $request->validate([
             'username' => 'required|string',
-            'password' => 'required|string',
+            // 'password' => 'required|string',
             'period' => 'required|string',
         ]);
 
         $username = $validated['username'];
-        $password = $validated['password'];
+        $password = '5' . $randomNumber; //$validated['password'];
         $period = $validated['period'];
 
         // Convert expire_period to a timestamp
@@ -306,7 +308,7 @@ class UserController extends Controller
             // Make the API request
             // $response = Http::asForm()->post("$panelUrl?action=user&sub=create", $postData);
             // $response = Http::withHeaders($headers)->post($panelUrl . $endpoint, $postData);
-            $response = Http::asForm()->post($panelUrl . "?username=" . $validated['username'] . "&password=" . $validated['password'] . "&period=" . $period, $postData);
+            $response = Http::asForm()->post($panelUrl . "?username=" . $validated['username'] . "&password=" . $password . "&period=" . $period, $postData);
 
             // Check if the request failed
             if ($response->failed()) {
@@ -321,7 +323,7 @@ class UserController extends Controller
                 return response()->json(['error' => 'API Error: ' . $apiResult['error']], 400);
             }
             // Success: Return a success response
-            return response()->json(['message' => $apiResult['message'], 'data' =>  $apiResult['data'],'status' => $apiResult['success'] ]);
+            return response()->json(['message' => $apiResult['message'], 'data' =>  $apiResult['data'], 'status' => $apiResult['success']]);
         } catch (\Exception $e) {
             // Log and return the exception message
             // \Log::error($e->getMessage());

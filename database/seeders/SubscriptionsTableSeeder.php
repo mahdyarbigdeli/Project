@@ -14,9 +14,11 @@ class SubscriptionsTableSeeder extends Seeder
     public function run(): void
     {
         DB::table('subscriptions')->insert([
-            ['name' => ' اشتراک دائمی', 'price' => 10.00],
-            ['name' => ' اشتراک یک ساله', 'price' => 20.00],
-            ['name' => ' اشتراک ۲ ماهه', 'price' => 30.00],
+            ['name' => ' اشتراک دائمی', 'price' => 499],
+            ['name' => ' اشتراک یک ساله', 'price' => 120],
+            ['name' => ' اشتراک شش ماهه ', 'price' => 90],
+            ['name' => ' اشتراک ۲ ماهه', 'price' => 30],
+            ['name' => ' اشتراک ۱ ماهه', 'price' => 20],
         ]);
     }
 }
