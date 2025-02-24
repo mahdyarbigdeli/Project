@@ -17,7 +17,6 @@ class SubscriptionsTableSeeder extends Seeder
             ['name' => ' اشتراک دائمی', 'price' => 499],
             ['name' => ' اشتراک یک ساله', 'price' => 120],
             ['name' => ' اشتراک شش ماهه ', 'price' => 90],
-            ['name' => ' اشتراک ۲ ماهه', 'price' => 30],
             ['name' => ' اشتراک ۱ ماهه', 'price' => 20],
         ]);
     }

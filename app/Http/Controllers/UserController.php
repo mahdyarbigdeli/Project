@@ -6,6 +6,7 @@ use App\Helpers\Helpers;
 use App\Http\Controllers\Controller;
 use App\Http\Repositories\User\UserRepository;
 use App\Http\Resources\UserResource;
+use App\Mail\UserMail;
 use App\Models\Applicant;
 use App\Models\User;
 use App\Traits\ApiResponse;
@@ -14,6 +15,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
@@ -323,11 +325,41 @@ class UserController extends Controller
                 return response()->json(['error' => 'API Error: ' . $apiResult['error']], 400);
             }
             // Success: Return a success response
-            return response()->json(['message' => $apiResult['message'], 'data' =>  $apiResult['data'], 'status' => $apiResult['success']]);
+            //send emial
+            $res = $this->sendEmail($password, $username);
+            if ($res && $res['status'])
+                return response()->json(['message' => $apiResult['message'], 'data' =>  $apiResult['data'], 'status' => $apiResult['success']]);
+            else
+                return response()->json(['message' => 'Email failed', 'data' =>  $apiResult['data'], 'status' => $apiResult['success']]);
         } catch (\Exception $e) {
             // Log and return the exception message
             // \Log::error($e->getMessage());
             return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function sendEmail($password, $username)
+    {
+        try {
+            $mailData = [
+                'title' => 'Pssword Information',
+                'subject' => 'Password Information',
+                'body' => 'Hi. your password for ' . $username . ' is: ' . $password
+            ];
+            Mail::send('emails.userMail', ['mailData' => $mailData], function ($mail) use ($username) {
+                $mail->from(env('MAIL_USERNAME'), env('MAIL_FROM_NAME'))
+                    ->to($username)
+                    ->subject('Password Information');
+            });
+            return ([
+                'status' => true,
+                'message' => 'Email sent successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Email sending failed: ' . $e->getMessage()
+            ], 500);
         }
     }
 }
