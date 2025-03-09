@@ -42,6 +42,51 @@ class UserController extends Controller
 
     public function show($jobId, $userId) {}
 
+    public function resetPassword(Request $request)
+    {
+        $panelUrl = 'http://tamasha-tv.com:25461/edituser.php';
+        $request->validate(['email' => 'required|email']);
+
+        $randomNumber = str_pad(mt_rand(0, 999999999), 9, '0', STR_PAD_LEFT);
+        $password = '5' . $randomNumber;
+        $email = $request->email;
+
+        // $expireDate = strtotime('1day');
+        // if ($expireDate === false) {
+        //     return response()->json(['error' => 'Invalid period format.'], 400);
+        // }
+        $maxConnections = 1;
+        // $enabled = 1;
+        // $memberId = 1;
+        // $adminEnabled = 1;
+        // $bouquetIds = [1, 2, 4, 5, 7, 8];
+        $postData = array(
+            'username' => $email,
+            'password' => $password,
+            'user_data' => array(
+                'max_connections' => $maxConnections,
+                'is_restreamer' => 0,
+            ),
+        );
+        try {
+
+            $response = Http::asForm()->post($panelUrl . "?username=" . $email . "&password=" . $password, $postData);
+            if ($response->failed()) {
+                return response()->json(['error' => 'API request failed. Could not connect to the API.'], 500);
+            }
+            $apiResult = $response->json();
+            if (isset($apiResult['error'])) {
+                return response()->json(['error' => 'API Error: ' . $apiResult['error']], 400);
+            }
+            $res = $this->sendEmail($password, $email);
+            if ($res && $res['status'])
+                return response()->json(['message' => $apiResult['message'], 'data' =>  $apiResult['data'], 'status' => $apiResult['success']]);
+            else
+                return response()->json(['message' => 'Email failed', 'data' =>  $apiResult['data'], 'status' => $apiResult['success']]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
+        }
+    }
 
     /**
      * Store a newly created resource in storage.
@@ -259,11 +304,11 @@ class UserController extends Controller
     {
         // Define the API panel URL
         $panelUrl = 'http://tamasha-tv.com:25461/createuser.php';
-        $endpoint = "createuser.php?action=user&sub=create";
+        // $endpoint = "createuser.php?action=user&sub=create";
 
-        $headers = [
-            'Content-Type' => 'application/json',
-        ];
+        // $headers = [
+        //     'Content-Type' => 'application/json',
+        // ];
 
         $randomNumber = str_pad(mt_rand(0, 999999999), 9, '0', STR_PAD_LEFT);
 
@@ -302,7 +347,7 @@ class UserController extends Controller
             'member_id' => $memberId,
             'exp_date' => $expireDate,
             'bouquet' => json_encode($bouquetIds),
-            'period' => $period
+            'period' => '1day', //$period
             // ],
         ];
 
@@ -344,7 +389,7 @@ class UserController extends Controller
             $mailData = [
                 'title' => 'Pssword Information',
                 'subject' => 'Password Information',
-                'body' => 'Hi. your password for ' . $username . ' is: ' . $password
+                'body' => 'Welcome . your password for ' . $username . ' is: ' . $password
             ];
             Mail::send('emails.userMail', ['mailData' => $mailData], function ($mail) use ($username) {
                 $mail->from(env('MAIL_USERNAME'), env('MAIL_FROM_NAME'))
