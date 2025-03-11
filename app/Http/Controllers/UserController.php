@@ -42,47 +42,26 @@ class UserController extends Controller
 
     public function show($jobId, $userId) {}
 
-    public function resetPassword(Request $request)
+    public function forgotPassword(Request $request)
     {
-        $panelUrl = 'http://tamasha-tv.com:25461/edituser.php';
+        $panelUrl = 'http://tamasha-tv.com:25461/usernopass.php';
         $request->validate(['email' => 'required|email']);
-
-        $randomNumber = str_pad(mt_rand(0, 999999999), 9, '0', STR_PAD_LEFT);
-        $password = '5' . $randomNumber;
         $email = $request->email;
-
-        // $expireDate = strtotime('1day');
-        // if ($expireDate === false) {
-        //     return response()->json(['error' => 'Invalid period format.'], 400);
-        // }
-        $maxConnections = 1;
-        // $enabled = 1;
-        // $memberId = 1;
-        // $adminEnabled = 1;
-        // $bouquetIds = [1, 2, 4, 5, 7, 8];
-        $postData = array(
-            'username' => $email,
-            'password' => $password,
-            'user_data' => array(
-                'max_connections' => $maxConnections,
-                'is_restreamer' => 0,
-            ),
-        );
         try {
-
-            $response = Http::asForm()->post($panelUrl . "?username=" . $email . "&password=" . $password, $postData);
+            $response = Http::asForm()->post($panelUrl . "?username=" . $email);
             if ($response->failed()) {
                 return response()->json(['error' => 'API request failed. Could not connect to the API.'], 500);
             }
             $apiResult = $response->json();
-            if (isset($apiResult['error'])) {
-                return response()->json(['error' => 'API Error: ' . $apiResult['error']], 400);
+            $apiResult = json_decode($apiResult);
+            if (isset($apiResult->error)) {
+                return response()->json(['error' => 'API Error: ' . $apiResult->error], 400);
             }
-            $res = $this->sendEmail($password, $email);
+            $res = $this->sendEmail($apiResult->password, $email);
             if ($res && $res['status'])
-                return response()->json(['message' => $apiResult['message'], 'data' =>  $apiResult['data'], 'status' => $apiResult['success']]);
+                return response()->json(['message' => $res['message']]);
             else
-                return response()->json(['message' => 'Email failed', 'data' =>  $apiResult['data'], 'status' => $apiResult['success']]);
+                return response()->json(['message' => 'Email failed']);
         } catch (\Exception $e) {
             return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
         }

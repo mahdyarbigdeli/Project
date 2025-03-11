@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Subscription;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Srmklive\PayPal\Services\PayPal as PayPalClient;
 
 class SubscriptionController extends Controller
@@ -56,8 +57,49 @@ class SubscriptionController extends Controller
 
         $response = $provider->capturePaymentOrder($request->query('token'));
 
-        if (isset($response['status']) && $response['status'] === 'COMPLETED') {
-            return response()->json(['message' => 'Payment successful', 'data' => $response], 200);
+        //update period
+        $panelUrl = 'http://tamasha-tv.com:25461/usernopass.php';
+        $expireDate = strtotime('1day');
+        if ($expireDate === false) {
+            return response()->json(['error' => 'Invalid period format.'], 400);
+        }
+        $response = Http::asForm()->post($panelUrl . "?username=" . $request->username);
+        if ($response->failed()) {
+            return response()->json(['error' => 'API request failed. Could not connect to the API.'], 500);
+        }
+        $apiResult = $response->json();
+        $apiResult = json_decode($apiResult);
+        if (isset($apiResult->error)) {
+            return response()->json(['error' => 'API Error: ' . $apiResult->error], 400);
+        }
+
+        $panelUrl = 'http://tamasha-tv.com:25461/edituser.php';
+        $maxConnections = 1;
+        $period = '1year';//todo change it
+
+        $expireDate = strtotime($period);
+        if ($expireDate === false) {
+            return response()->json(['error' => 'Invalid period format.'], 400);
+        }
+        $postData = array(
+            'username' => $request->username,
+            'password' => $apiResult->password,
+            'user_data' => array(
+                'max_connections' => $maxConnections,
+                'is_restreamer' => 0,
+                'exp_date' => $expireDate,
+            ),
+        );
+        $response = Http::asForm()->post($panelUrl . "?username=" . $request->username . "&password=" . $apiResult->password . "&period=" . $period, $postData);
+
+        // Check if the request failed
+        if ($response->failed()) {
+            return response()->json(['error' => 'API request failed. Could not connect to the API.'], 500);
+        }
+        // Decode the JSON response
+        $apiResult = $response->json();
+        if (isset($response['status']) && $response['status'] === 'success') {
+            return response()->json(['message' => 'Payment successful', 'data' => $apiResult], 200);
         }
 
         return response()->json(['error' => 'Payment not completed'], 400);
@@ -65,6 +107,7 @@ class SubscriptionController extends Controller
 
     public function cancel(Request $request)
     {
+
         return redirect('/subscriptions/cancel?token=' . $request?->token); //->with('token', $request?->token);
 
         // return redirect()->route('subscriptions.index')->with('error', 'Payment was cancelled.');
