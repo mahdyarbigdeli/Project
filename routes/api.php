@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -44,4 +45,8 @@ Route::get('/subscriptions', [SubscriptionController::class, 'index'])->name('su
 Route::get('/subscriptions/buy/{id}', [SubscriptionController::class, 'buy'])->name('subscriptions.buy');
 Route::get('/subscriptions/success', [SubscriptionController::class, 'success'])->name('subscriptions.success');
 Route::get('/subscriptions/cancel', [SubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
+
+
+Route::post('/payment', [PaymentController::class, 'processPayment'])->name('stripe.payment');
+
 // });

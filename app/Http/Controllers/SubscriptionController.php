@@ -15,38 +15,52 @@ class SubscriptionController extends Controller
         return response()->json(['data' => $subscriptions]);
     }
 
-    public function buy($id)
+    public function buy(Request $request, $id)
     {
-        $subscription = Subscription::findOrFail($id);
+        try {
 
-        if (!$subscription) {
-            return response()->json(['error' => 'Subscription not found'], 404);
-        }
+            $subscription = Subscription::findOrFail($id);
 
-        $provider = new PayPalClient();
-        $provider->setApiCredentials(config('paypal'));
-        $provider->getAccessToken();
-        $order = $provider->createOrder([
-            "intent" => "CAPTURE",
-            "purchase_units" => [
-                [
-                    "amount" => [
-                        "currency_code" => "USD", // Adjust currency if needed
-                        "value" => $subscription->price,
-                    ],
-                    "description" => $subscription->name,
+            // $validated = $request->validate([
+            //     'username' => 'required|string',
+            // ]);
+
+
+            // session(['subscription' => $id]);
+            // session(['username' => $request->username]);
+
+            if (!$subscription) {
+                return response()->json(['error' => 'Subscription not found'], 404);
+            }
+
+            $provider = new PayPalClient();
+            $provider->setApiCredentials(config('paypal'));
+            $provider->getAccessToken();
+            $order = $provider->createOrder([
+                "intent" => "CAPTURE",
+                "purchase_units" => [
+                    [
+                        "amount" => [
+                            "currency_code" => "USD", // Adjust currency if needed
+                            "value" => $subscription->price,
+                        ],
+                        "description" => $subscription->name,
+                    ]
+                ],
+                "application_context" => [
+                    "cancel_url" => route('subscriptions.cancel'), // Production cancel URL
+                    "return_url" => route('subscriptions.success'), // Production success URL
                 ]
-            ],
-            "application_context" => [
-                "cancel_url" => route('subscriptions.cancel'), // Production cancel URL
-                "return_url" => route('subscriptions.success'), // Production success URL
-            ]
-        ]);
-        if (isset($order['links'][1]['href'])) {
-            return response()->json(['redirect_url' => $order['links'][1]['href']], 200);
-        }
+            ]);
+            if (isset($order['links'][1]['href'])) {
+                return response()->json(['redirect_url' => $order['links'][1]['href']], 200);
+            }
 
-        return response()->json(['error' => 'Failed to create PayPal order'], 500);
+            return response()->json(['error' => 'Failed to create PayPal order'], 500);
+        } catch (\Exception $e) {
+            // Other errors
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     public function success(Request $request)
@@ -75,7 +89,7 @@ class SubscriptionController extends Controller
 
         $panelUrl = 'http://tamasha-tv.com:25461/edituser.php';
         $maxConnections = 1;
-        $period = '1year';//todo change it
+        $period = '1year'; //todo change it
 
         $expireDate = strtotime($period);
         if ($expireDate === false) {
