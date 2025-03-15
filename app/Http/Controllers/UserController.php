@@ -295,12 +295,12 @@ class UserController extends Controller
         $validated = $request->validate([
             'username' => 'required|string',
             // 'password' => 'required|string',
-            'period' => 'required|string',
+            // 'period' => 'required|string',
         ]);
 
         $username = $validated['username'];
         $password = '5' . $randomNumber; //$validated['password'];
-        $period = $validated['period'];
+        $period = '1day'; //$validated['period'];
 
         // Convert expire_period to a timestamp
         $expireDate = strtotime($period);
@@ -366,7 +366,7 @@ class UserController extends Controller
     {
         try {
             $mailData = [
-                'title' => 'Pssword Information',
+                'title' => 'Password Information',
                 'subject' => 'Password Information',
                 'body' => 'Welcome . your password for ' . $username . ' is: ' . $password
             ];
