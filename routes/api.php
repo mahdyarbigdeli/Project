@@ -49,6 +49,6 @@ Route::middleware(['api'])->group(function () {
     Route::get('/subscriptions/cancel', [SubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
 
     //credit
-    Route::post('/create-payment/{id}', [PayPalController::class, 'createPayment']);
+    Route::post('/create-payment', [PayPalController::class, 'createPayment']);
     Route::post('/capture-payment', [PayPalController::class, 'capturePayment']);
 });
