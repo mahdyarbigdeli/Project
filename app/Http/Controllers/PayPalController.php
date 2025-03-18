@@ -16,17 +16,18 @@ class PayPalController extends Controller
         $this->paypal = $paypal;
     }
 
-    public function createPayment(Request $request, $id)
+    public function createPayment(Request $request)
     {
         try {
             $validated = $request->validate([
                 'username' => 'required|string',
+                'id' => 'required',
             ]);
 
-            session(['subscription' => $id]);
+            session(['subscription' => $request->id]);
             session(['username' =>  $request->username]);
 
-            $subscription = Subscription::find($id);
+            $subscription = Subscription::find($request->id);
             $provider = new PayPalClient;
             $provider->setApiCredentials(config('paypal'));
             $provider->setAccessToken($provider->getAccessToken());
