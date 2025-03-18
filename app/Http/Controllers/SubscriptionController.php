@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Session;
 use Srmklive\PayPal\Services\PayPal as PayPalClient;
 
 class SubscriptionController extends Controller
@@ -27,7 +28,9 @@ class SubscriptionController extends Controller
 
 
             // session(['subscription' => $id]);
-            // session(['username' => $request->username]);
+            // session(['username' =>  $request->username]);
+            // session()->save();
+
 
             if (!$subscription) {
                 return response()->json(['error' => 'Subscription not found'], 404);
@@ -65,6 +68,7 @@ class SubscriptionController extends Controller
 
     public function success(Request $request)
     {
+
         $provider = new PayPalClient();
         $provider->setApiCredentials(config('paypal'));
         $provider->getAccessToken();
@@ -125,5 +129,42 @@ class SubscriptionController extends Controller
         return redirect('/subscriptions/cancel?token=' . $request?->token); //->with('token', $request?->token);
 
         // return redirect()->route('subscriptions.index')->with('error', 'Payment was cancelled.');
+    }
+
+
+    public function createPayment(Request $request ,$id)
+    {
+
+        $subscription = Subscription::findOrFail($id);
+
+        $provider = new PayPalClient;
+        $provider->setApiCredentials(config('paypal'));
+        $provider->setAccessToken($provider->getAccessToken());
+        $response = $provider->createOrder([
+            "intent" => "CAPTURE",
+            "purchase_units" => [
+                [
+                    "amount" => [
+                        "currency_code" => "USD",
+                        "value" => "100.00"
+                    ]
+                ]
+            ]
+        ]);
+
+        if (isset($response['id'])) {
+            return ($response['links'][1]['href']);
+        }
+        return  response()->json(['error' => 'Payment not completed'], 400);
+    }
+
+    public function successPayment(Request $request)
+    {
+        // Handle successful payment
+    }
+
+    public function cancelPayment()
+    {
+        // Handle payment cancellation
     }
 }
