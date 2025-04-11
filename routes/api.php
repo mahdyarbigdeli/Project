@@ -48,7 +48,28 @@ Route::middleware(['api'])->group(function () {
     Route::get('/subscriptions/success', [SubscriptionController::class, 'success'])->name('subscriptions.success');
     Route::get('/subscriptions/cancel', [SubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
 
-    //credit
-    Route::post('/create-payment', [PayPalController::class, 'createPayment']);
-    Route::post('/capture-payment', [PayPalController::class, 'capturePayment']);
+    // //credit
+    // Route::post('/create-payment', [PayPalController::class, 'createPayment']);
+    // Route::post('/capture-payment', [PayPalController::class, 'capturePayment']);
+
+
+    Route::post('/paypal/create-order', [PaymentController::class, 'createOrder']);
+    Route::post('/paypal/capture-order/{orderId}', [PaymentController::class, 'captureOrder']);
+
+    Route::get('/payment-success', function () {
+        return response()->json(['message' => 'Payment successful']);
+    })->name('payment.success');
+
+    Route::get('/payment-cancel', function () {
+        return response()->json(['message' => 'Payment canceled']);
+    })->name('payment.cancel');
+
+    // Route::post('/paypal/orders', [PayPalController::class, 'createOrder']);
+    // Route::post('/paypal/orders/{orderId}/capture', [PayPalController::class, 'captureOrder']);
+    // Route::get('/payment-success', function () {
+    //     return response()->json(['message' => 'Payment successful']);
+    // })->name('payment.success');
+    // Route::get('/payment-cancel', function () {
+    //     return response()->json(['message' => 'Payment canceled']);
+    // })->name('payment.cancel');
 });
