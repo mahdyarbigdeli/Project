@@ -35,7 +35,7 @@ class PaymentController extends Controller
 
         try {
             // Calculate the total amount
-            $totalAmount = number_format($request->price , 2, '.', '');
+            $totalAmount = number_format($request->price, 2, '.', '');
 
             // Build the order payload
             $orderBody = [
@@ -68,6 +68,8 @@ class PaymentController extends Controller
                 'application_context' => [
                     'return_url' => route('payment.success'),
                     'cancel_url' => route('payment.cancel'),
+                    'landing_page' => 'login',
+                    'user_action' => 'PAY_NOW',
                 ],
             ];
 
