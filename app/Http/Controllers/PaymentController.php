@@ -68,7 +68,7 @@ class PaymentController extends Controller
                 'application_context' => [
                     'return_url' => route('payment.success'),
                     'cancel_url' => route('payment.cancel'),
-                    'landing_page' => 'login',
+                    'landing_page' => 'LOGIN',
                     'user_action' => 'PAY_NOW',
                 ],
             ];
