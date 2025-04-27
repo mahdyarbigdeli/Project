@@ -41,7 +41,7 @@ RUN pecl install sqlsrv pdo_sqlsrv \
 
 
 RUN mkdir -p /var/log/supervisor
-COPY ./supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY ./supervisor/supervisor.conf /etc/supervisor/conf.d/supervisord.conf
 
 
 WORKDIR /var/www/html
