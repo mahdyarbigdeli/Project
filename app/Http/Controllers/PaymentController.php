@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use PayPalCheckoutSdk\Core\PayPalHttpClient;
+use PayPalCheckoutSdk\Core\ProductionEnvironment;
 use PayPalCheckoutSdk\Core\SandboxEnvironment;
 use PayPalCheckoutSdk\Orders\OrdersCreateRequest;
 use PayPalCheckoutSdk\Orders\OrdersCaptureRequest;
@@ -14,9 +15,11 @@ class PaymentController extends Controller
 
     public function __construct()
     {
+
         // Set up PayPal API client using the sandbox environment
-        $environment = new SandboxEnvironment(env('PAYPAL_SANDBOX_CLIENT_ID'), env('PAYPAL_SANDBOX_CLIENT_SECRET'));
+        $environment = new ProductionEnvironment(env('PAYPAL_LIVE_CLIENT_ID'), env('PAYPAL_LIVE_CLIENT_SECRET'));
         $this->client = new PayPalHttpClient($environment);
+
     }
 
     /**
@@ -31,6 +34,7 @@ class PaymentController extends Controller
             'sku' => 'required|string|max:255',
             // 'quantity' => 'required|integer|min:1',
             'currency' => 'required|string|size:3',
+            'payment_source' => 'nullable|string|in:paypal,applepay,card',
         ]);
 
         try {
@@ -73,6 +77,16 @@ class PaymentController extends Controller
                 ],
             ];
 
+            if ($request->filled('payment_source')) {
+                $paymentSource = $request->payment_source;
+            } else {
+                $paymentSource = 'paypal';
+            }
+
+            // $orderBody['payment_source'] = [
+            //     $paymentSource => []
+            // ];
+
             // Send the order creation request to PayPal
             $orderRequest = new OrdersCreateRequest();
             $orderRequest->prefer('return=representation');
@@ -80,18 +94,21 @@ class PaymentController extends Controller
 
             $response = $this->client->execute($orderRequest);
 
+
             // Return the response with the order ID and approval URL
             return response()->json([
                 'status' => 'success',
                 'order_id' => $response->result->id,
                 'approval_url' => collect($response->result->links)->where('rel', 'approve')->first()->href,
             ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-            ], 500);
         }
+            catch (\Exception $e) {
+                \Log::error('PayPal API Error: '.$e->getMessage());
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $e->getMessage(),
+                ], 500);
+            }
     }
 
     /**
