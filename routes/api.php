@@ -6,6 +6,7 @@ use App\Http\Controllers\PayPalController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -52,17 +53,23 @@ Route::middleware(['api'])->group(function () {
     // Route::post('/create-payment', [PayPalController::class, 'createPayment']);
     // Route::post('/capture-payment', [PayPalController::class, 'capturePayment']);
 
+    Route::middleware([StartSession::class])->group(function () {
 
-    Route::post('/paypal/create-order', [PaymentController::class, 'createOrder']);
-    Route::post('/paypal/capture-order/{orderId}', [PaymentController::class, 'captureOrder']);
+        Route::post('/paypal/create-order', [PaymentController::class, 'createOrder']);
+        Route::post('/paypal/capture-order/{orderId}', [PaymentController::class, 'captureOrder']);
+        // Payment success route (GET, for browser redirect)
+        Route::get('/paypal/payment-success', [PaymentController::class, 'paymentSuccess'])->name('payment.success');
 
-    Route::get('/payment-success', function () {
-        return response()->json(['message' => 'Payment successful']);
-    })->name('payment.success');
+        // Payment cancel route
+        Route::get('/paypal/payment-cancel', [PaymentController::class, 'paymentCancel'])->name('payment.cancel');
+    });
+    // Route::get('/payment-success', function () {
+    //     return response()->json(['message' => 'Payment successful']);
+    // })->name('payment.success');
 
-    Route::get('/payment-cancel', function () {
-        return response()->json(['message' => 'Payment canceled']);
-    })->name('payment.cancel');
+    // Route::get('/payment-cancel', function () {
+    //     return response()->json(['message' => 'Payment canceled']);
+    // })->name('payment.cancel');
 
     // Route::post('/paypal/orders', [PayPalController::class, 'createOrder']);
     // Route::post('/paypal/orders/{orderId}/capture', [PayPalController::class, 'captureOrder']);
