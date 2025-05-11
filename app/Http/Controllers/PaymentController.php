@@ -23,6 +23,7 @@ class PaymentController extends Controller
 
         // Set up PayPal API client using the sandbox environment
         $environment = new ProductionEnvironment(env('PAYPAL_LIVE_CLIENT_ID'), env('PAYPAL_LIVE_CLIENT_SECRET'));
+        dd(env('PAYPAL_LIVE_CLIENT_ID'), env('PAYPAL_LIVE_CLIENT_SECRET'));
         $this->client = new PayPalHttpClient($environment);
     }
 
