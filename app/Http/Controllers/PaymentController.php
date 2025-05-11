@@ -22,8 +22,10 @@ class PaymentController extends Controller
     {
 
         // Set up PayPal API client using the sandbox environment
-        $environment = new ProductionEnvironment(env('PAYPAL_LIVE_CLIENT_ID'), env('PAYPAL_LIVE_CLIENT_SECRET'));
-        dd(env('PAYPAL_LIVE_CLIENT_ID'), env('PAYPAL_LIVE_CLIENT_SECRET'));
+        $client = "AWs7cWCUvAxkwcUkkI_k0mvfV2QyV-YT1M_Gu9odwlwxyk7pnthlwEU3ITh76l9b0vTNBVOYqf3NiW1a";
+        $secret = "EDazYypXgR1VsBfP5QJQPC6MviaRjihKSQSTIfZYsooWXuOmOAultw2sJ4mgdLg6XIxar2bi_7hTxKOx";
+        // $environment = new ProductionEnvironment(env('PAYPAL_LIVE_CLIENT_ID'), env('PAYPAL_LIVE_CLIENT_SECRET'));
+        $environment = new ProductionEnvironment($client, $secret);
         $this->client = new PayPalHttpClient($environment);
     }
 
