@@ -175,8 +175,8 @@ class PaymentController extends Controller
 
             $raw = $response->body();
             $firstDecode = json_decode($response->body(), true);
-
-            dd($firstDecode);
+            $password = "";
+            dd($firstDecode, $username);
             if (is_array($firstDecode)) {
                 $finalData = json_decode($raw, true);
                 $password = $finalData['password'];
@@ -212,6 +212,7 @@ class PaymentController extends Controller
 
                 break;
         }
+
         $response = $this->updateUser($username, $password, $period);
         Log::info('PayPal API Data: ' . $subscription->price);
         $data = $response->getData(true);
