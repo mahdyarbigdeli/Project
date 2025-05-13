@@ -6,6 +6,7 @@ use App\Models\Subscription;
 use App\Models\UserSubscription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 use PayPalCheckoutSdk\Core\PayPalHttpClient;
@@ -127,7 +128,7 @@ class PaymentController extends Controller
                 'approval_url' => collect($response->result->links)->where('rel', 'approve')->first()->href,
             ]);
         } catch (\Exception $e) {
-            \Log::error('PayPal API Error: ' . $e->getMessage());
+            Log::info('PayPal API Error: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage(),
@@ -180,7 +181,6 @@ class PaymentController extends Controller
             }
             $password = $finalData['password'];
         }
-
         switch ($subscription->price) {
             case '599':
                 $period = "lifetime";
@@ -196,15 +196,19 @@ class PaymentController extends Controller
                 break;
             case '20':
                 $period = "1month";
+            case '1':
+                $period = "1month";
 
                 break;
         }
         $response = $this->updateUser($username, $password, $period);
+        Log::info('PayPal API Data: ' . $subscription->price);
         $data = $response->getData(true);
         if (isset($data['error'])) {
             return response()->json(['message' => 'Update failed', 'details' => $data['error']], 400);
         }
 
+        Log::info('PayPal API Data: ' . $data);
         $mailData = [
             'title' => 'Payment Information',
             'subject' => 'Payment Confirmation ',
