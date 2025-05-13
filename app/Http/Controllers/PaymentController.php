@@ -93,8 +93,8 @@ class PaymentController extends Controller
                     ],
                 ],
                 'application_context' => [
-                    'return_url' => route('payment.success'),
-                    'cancel_url' => route('payment.cancel'),
+                    'return_url' => 'https://bo.tamasha.me/api/paypal/payment-success', //route('payment.success'),
+                    'cancel_url' => 'https://bo.tamasha.me/api/paypal/payment-cancel', // route('payment.cancel'),
                     'landing_page' => 'LOGIN',
                     'user_action' => 'PAY_NOW',
                 ],
@@ -115,8 +115,8 @@ class PaymentController extends Controller
             $orderRequest->prefer('return=representation');
             $orderRequest->body = $orderBody;
 
-            $username = session('username');
-            $subscription_id = session('subscription');
+            // $username = session('username');
+            // $subscription_id = session('subscription');
 
 
             $response = $this->client->execute($orderRequest);
@@ -162,9 +162,10 @@ class PaymentController extends Controller
 
     public function paymentSuccess(Request $request)
     {
-        $subscriptionId = session('subscription');
-        $username = session('username');
+        // $subscriptionId = session('subscription');
+        // $username = session('username');
         $username = Session::get('username');
+        $subscriptionId = Session::get('subscription');
 
         $subscription = Subscription::find($subscriptionId);
         $response = Http::get('http://tamasha-tv.com:25461/usernopass.php', [
