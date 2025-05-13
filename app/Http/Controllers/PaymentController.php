@@ -220,6 +220,7 @@ class PaymentController extends Controller
                 ->subject('Password Information');
         });
 
+        Log::info('PayPal API Data: Email sent');
         // $userSubscription = UserSubscription::where('username', $username)
         //     ->where('subscription_id', $subscriptionId)
         //     ->first();
