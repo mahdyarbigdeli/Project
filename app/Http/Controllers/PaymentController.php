@@ -171,11 +171,11 @@ class PaymentController extends Controller
             'username' =>  $username
         ]);
 
+            $password = "";
         if ($response->successful()) {
 
             $raw = $response->body();
             $firstDecode = json_decode($response->body(), true);
-            $password = "";
             dd($firstDecode, $username);
             if (is_array($firstDecode)) {
                 $finalData = json_decode($raw, true);
