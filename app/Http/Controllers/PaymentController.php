@@ -176,10 +176,21 @@ class PaymentController extends Controller
             $raw = $response->body();
             $firstDecode = json_decode($response->body(), true);
 
+            dd($firstDecode);
+            if (is_array($firstDecode)) {
+                $finalData = json_decode($raw, true);
+                $password = $finalData['password'];
+            } elseif (is_object($firstDecode)) {
+                $finalData = json_decode($raw, true);
+                $password = $finalData->password;
+            } else {
+                // Handle the case where the response is neither an array nor an object
+                return response()->json(['error' => 'Invalid response format'], 500);
+            }
             if (is_string($firstDecode)) {
                 $finalData = json_decode($firstDecode, true);
+                $password = $finalData['password'];
             }
-            $password = $finalData['password'];
         }
         switch ($subscription->price) {
             case '599':
