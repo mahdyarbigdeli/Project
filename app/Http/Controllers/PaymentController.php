@@ -189,6 +189,7 @@ class PaymentController extends Controller
         ]);
         // dd($subscription, $username, $response, $subscriptionId, $request->all());
 
+        $username = $userSubscription->user_name;
         $password = "";
         if ($response->successful()) {
 
