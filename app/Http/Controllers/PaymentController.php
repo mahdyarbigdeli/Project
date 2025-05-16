@@ -125,11 +125,13 @@ class PaymentController extends Controller
             $response = $this->client->execute($orderRequest);
 
             // Return the response with the order ID and approval URL
-            return response()->json([
-                'status' => 'success',
-                'order_id' => $response->result->id,
-                'approval_url' => collect($response->result->links)->where('rel', 'approve')->first()->href,
-            ]);
+            // return response()->json([
+            //     'status' => 'success',
+            //     'order_id' => $response->result->id,
+            //     'approval_url' => collect($response->result->links)->where('rel', 'approve')->first()->href,
+            // ]);
+            $approvalUrl = collect($response->result->links)->where('rel', 'approve')->first()->href;
+            return redirect()->away($approvalUrl);
         } catch (\Exception $e) {
             Log::info('PayPal API Error: ' . $e->getMessage());
             return response()->json([
@@ -149,11 +151,16 @@ class PaymentController extends Controller
             $response = $this->client->execute($captureRequest);
 
 
-            // Return the capture details
-            return response()->json([
+            // // Return the capture details
+            // return response()->json([
+            //     'status' => 'success',
+            //     'data' => $response->result,
+            // ]);
+
+            return [
                 'status' => 'success',
                 'data' => $response->result,
-            ]);
+            ];
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -167,6 +174,10 @@ class PaymentController extends Controller
     {
         // $subscriptionId = session('subscription');
         // $username = session('username');
+        // $captureRequest = new OrdersCaptureRequest($orderId);
+        // $response = $this->client->execute($captureRequest);
+
+
         $username = Session::get('username');
         $subscriptionId = Session::get('subscription');
 
@@ -231,8 +242,12 @@ class PaymentController extends Controller
         //     ->where('subscription_id', $subscriptionId)
         //     ->first();
 
+        // $orderId = $request->query('token');
+        // $result = $this->captureOrder($orderId);
+        // if ($result['status'] === 'success') {
 
-        return redirect()->away('https://user.tamasha.me/subscriptions/success');
+            return redirect()->away('https://user.tamasha.me/subscriptions/success');
+        // }
     }
 
     public function paymentCancel(Request $request)
