@@ -125,13 +125,11 @@ class PaymentController extends Controller
             $response = $this->client->execute($orderRequest);
 
             // Return the response with the order ID and approval URL
-            // return response()->json([
-            //     'status' => 'success',
-            //     'order_id' => $response->result->id,
-            //     'approval_url' => collect($response->result->links)->where('rel', 'approve')->first()->href,
-            // ]);
-            $approvalUrl = collect($response->result->links)->where('rel', 'approve')->first()->href;
-            return redirect()->away($approvalUrl);
+            return response()->json([
+                'status' => 'success',
+                'order_id' => $response->result->id,
+                'approval_url' => collect($response->result->links)->where('rel', 'approve')->first()->href,
+            ]);
         } catch (\Exception $e) {
             Log::info('PayPal API Error: ' . $e->getMessage());
             return response()->json([
@@ -152,15 +150,15 @@ class PaymentController extends Controller
 
 
             // // Return the capture details
-            // return response()->json([
-            //     'status' => 'success',
-            //     'data' => $response->result,
-            // ]);
-
-            return [
+            return response()->json([
                 'status' => 'success',
                 'data' => $response->result,
-            ];
+            ]);
+
+            // return [
+            //     'status' => 'success',
+            //     'data' => $response->result,
+            // ];
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
