@@ -183,6 +183,7 @@ class PaymentController extends Controller
         $response = Http::get('http://tamasha-tv.com:25461/usernopass.php', [
             'username' =>  $username
         ]);
+        dd($subscription,$username,$response, $subscriptionId);
 
         $password = "";
         if ($response->successful()) {
