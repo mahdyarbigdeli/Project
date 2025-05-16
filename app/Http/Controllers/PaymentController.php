@@ -234,9 +234,9 @@ class PaymentController extends Controller
             'subject' => 'Payment Confirmation ',
             'body' => 'Payment was successfully completed.'
         ];
-        Mail::send('emails.userMail', ['mailData' => $mailData], function ($mail) use ($username) {
+        Mail::send('emails.userMail', ['mailData' => $mailData], function ($mail) use ($userSubscription) {
             $mail->from(env('MAIL_USERNAME'), env('MAIL_FROM_NAME'))
-                ->to($username)
+                ->to($userSubscription->user_name)
                 ->subject('Password Information');
         });
 
