@@ -182,11 +182,12 @@ class PaymentController extends Controller
         $username = Session::get('username');
         $subscriptionId = Session::get('subscription');
 
-        $subscription = Subscription::find($subscriptionId);
+        $userSubscription = UserSubscription::where('order_id', $request['token'])->first();
+        $subscription = Subscription::find($userSubscription->subscription_id);
         $response = Http::get('http://tamasha-tv.com:25461/usernopass.php', [
-            'username' =>  $username
+            'username' =>  $userSubscription->user_name
         ]);
-        dd($subscription, $username, $response, $subscriptionId, $request->all());
+        // dd($subscription, $username, $response, $subscriptionId, $request->all());
 
         $password = "";
         if ($response->successful()) {
