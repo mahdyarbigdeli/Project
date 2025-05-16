@@ -222,13 +222,13 @@ class PaymentController extends Controller
         }
 
         $response = $this->updateUser($username, $password, $period);
-        Log::info('PayPal API Data: ' . $subscription->price);
+        // Log::info('PayPal API Data: ' . $subscription->price);
         $data = $response->getData(true);
         if (isset($data['error'])) {
             return response()->json(['message' => 'Update failed', 'details' => $data['error']], 400);
         }
 
-        Log::info('PayPal API Data: ' . $data);
+        // Log::info('PayPal API Data: ' . $data);
         $mailData = [
             'title' => 'Payment Information',
             'subject' => 'Payment Confirmation ',
@@ -240,7 +240,7 @@ class PaymentController extends Controller
                 ->subject('Password Information');
         });
 
-        Log::info('PayPal API Data: Email sent');
+        // Log::info('PayPal API Data: Email sent');
         // $userSubscription = UserSubscription::where('username', $username)
         //     ->where('subscription_id', $subscriptionId)
         //     ->first();
