@@ -60,10 +60,7 @@ class PaymentController extends Controller
             Session::save();
 
 
-            UserSubscription::create([
-                'user_name' => $request->username,
-                'subscription_id' => $subscription->id
-            ]);
+
             // Build the order payload
             $orderBody = [
                 'intent' => 'CAPTURE',
@@ -95,8 +92,8 @@ class PaymentController extends Controller
                 'application_context' => [
                     // 'return_url' => 'https://bo.tamasha.me/api/paypal/payment-success', //route('payment.success'),
                     // 'cancel_url' => 'https://bo.tamasha.me/api/paypal/payment-cancel', // route('payment.cancel'),
-                    'return_url' =>'https://bo.tamasha.me/api/paypal/payment-success',// route('payment.success'),
-                    'cancel_url' => 'https://bo.tamasha.me/api/paypal/payment-cancel',// route('payment.cancel'),
+                    'return_url' => 'https://bo.tamasha.me/api/paypal/payment-success', // route('payment.success'),
+                    'cancel_url' => 'https://bo.tamasha.me/api/paypal/payment-cancel', // route('payment.cancel'),
 
                     'landing_page' => 'LOGIN',
                     'user_action' => 'PAY_NOW',
@@ -123,6 +120,12 @@ class PaymentController extends Controller
 
 
             $response = $this->client->execute($orderRequest);
+
+            UserSubscription::create([
+                'user_name' => $request->username,
+                'subscription_id' => $subscription->id,
+                'order_id' => $response->result->id
+            ]);
 
             // Return the response with the order ID and approval URL
             return response()->json([
@@ -183,7 +186,7 @@ class PaymentController extends Controller
         $response = Http::get('http://tamasha-tv.com:25461/usernopass.php', [
             'username' =>  $username
         ]);
-        dd($subscription,$username,$response, $subscriptionId);
+        dd($subscription, $username, $response, $subscriptionId, $request->all());
 
         $password = "";
         if ($response->successful()) {
@@ -245,7 +248,7 @@ class PaymentController extends Controller
         // $result = $this->captureOrder($orderId);
         // if ($result['status'] === 'success') {
 
-            return redirect()->away('https://user.tamasha.me/subscriptions/success');
+        return redirect()->away('https://user.tamasha.me/subscriptions/success');
         // }
     }
 
