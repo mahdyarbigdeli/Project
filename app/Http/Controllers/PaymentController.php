@@ -158,10 +158,6 @@ class PaymentController extends Controller
                 'data' => $response->result,
             ]);
 
-            // return [
-            //     'status' => 'success',
-            //     'data' => $response->result,
-            // ];
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
