@@ -225,7 +225,6 @@ class PaymentController extends Controller
         $response = $this->updateUser($username, $password, $period);
         // Log::info('PayPal API Data: ' . $subscription->price);
         $data = $response->getData(true);
-        dd($response,$data);
         if (isset($data['error'])) {
             return response()->json(['message' => 'Update failed', 'details' => $data['error']], 400);
         }
