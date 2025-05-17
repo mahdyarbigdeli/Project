@@ -184,6 +184,7 @@ class PaymentController extends Controller
             'username' =>  $userSubscription->user_name
         ]);
 
+
         $username = $userSubscription->user_name;
         $password = "";
         if ($response->successful()) {
