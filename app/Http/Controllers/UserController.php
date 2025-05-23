@@ -299,7 +299,7 @@ class UserController extends Controller
             }
 
             if (isset($finalData['error'])) {
-                return response()->json(['error' => 'User not found'], 400);
+                return response()->json(['error' => 'User not found'], 404);
             } else
                 return response()->json(['message' => 'User found']);
         } catch (\Exception $e) {
