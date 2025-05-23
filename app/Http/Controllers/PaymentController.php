@@ -227,14 +227,14 @@ class PaymentController extends Controller
 
         // Log::info('PayPal API Data: ' . $data);
         $mailData = [
-            'title' => 'Payment Information',
-            'subject' => 'Payment Confirmation ',
-            'body' => 'Payment was successfully completed.'
+            'title' => ' پرداخت موفق',
+            'subject' => ' تایید پرداخت ',
+            'body' => 'خرید اشتراک شما با موفقیت انجام شد . با معرفی هر یک از مشترکان جدید به ما،‌یک ماه اشتراک اضافه رایگان دریافت نمایید'
         ];
         Mail::send('emails.userMail', ['mailData' => $mailData], function ($mail) use ($username) {
             $mail->from(env('MAIL_USERNAME'), env('MAIL_FROM_NAME'))
                 ->to($username)
-                ->subject('Password Information');
+                ->subject('پرداخت موفق');
         });
 
         // Log::info('PayPal API Data: Email sent');

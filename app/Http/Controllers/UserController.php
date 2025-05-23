@@ -366,9 +366,13 @@ class UserController extends Controller
     {
         try {
             $mailData = [
-                'title' => 'Password Information',
-                'subject' => 'Password Information',
-                'body' => 'Welcome . your password for ' . $username . ' is: ' . $password
+                'title' => ' اطلاعات نام کاربری و رمز عبور',
+                'subject' => '  اطلاعات نام کاربری و رمز عبور',
+                'body' => 'به پلتفرم تماشا خوش آمدید' .
+                    'رمز عبور ' .
+                    $username . '  ،' .
+                    $password . 'می باشد'
+
             ];
             Mail::send('emails.userMail', ['mailData' => $mailData], function ($mail) use ($username) {
                 $mail->from(env('MAIL_USERNAME'), env('MAIL_FROM_NAME'))
