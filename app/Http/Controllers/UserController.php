@@ -279,6 +279,38 @@ class UserController extends Controller
         }
     }
 
+    public function noPass(Request $request)
+    {
+        // Define the API panel URL
+        $validated = $request->validate([
+            'username' => 'required|string',
+        ]);
+
+        $username = $validated['username'];
+        try {
+
+            $response = Http::get('http://tamasha-tv.com:25461/usernopass.php', [
+                'username' =>  $username
+            ]);
+            $firstDecode = json_decode($response->body(), true);
+
+            if (is_string($firstDecode)) {
+                $finalData = json_decode($firstDecode, true);
+            }
+
+            if (isset($finalData['error'])) {
+                return response()->json(['error' => 'User not found'], 400);
+            } else
+                return response()->json(['message' => 'User found']);
+        } catch (\Exception $e) {
+            // Handle and log the exception
+            // \Log::error($e->getMessage());
+            return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
+        }
+    }
+
+
+
     public function createUser(Request $request)
     {
         // Define the API panel URL
