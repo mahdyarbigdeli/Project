@@ -396,15 +396,22 @@ class UserController extends Controller
 
     public function sendEmail($password, $username)
     {
+
+        $parts = explode('@', $username);
+        $beforeAt = $parts[0];
+        $afterAt = $parts[1];
+
+        $safeEmail = '<span style="color:#ffffff;">' . $beforeAt . '</span>'
+            . '<span style="color:#ffffff;">&#64;</span>'
+            . '<span style="color:#ffffff;">' . $afterAt . '</span>';
+
         try {
             $mailData = [
                 'title' => ' اطلاعات نام کاربری و رمز عبور',
-                'subject' => '  اطلاعات نام کاربری و رمز عبور',
-                'body' => 'به پلتفرم تماشا خوش آمدید' .
-                    'رمز عبور ' .
-                    $username . '  ،' .
-                    $password . 'می باشد'
-
+                'body' => 'به پلتفرم تماشا خوش آمدید<br>' .
+                    'نام کاربری: <span style="color:#ffffff;">' . ($safeEmail) . '</span><br>' .
+                    'رمز عبور: ' . htmlspecialchars($password) . '<br>' .
+                    'می‌باشد.'
             ];
             Mail::send('emails.userMail', ['mailData' => $mailData], function ($mail) use ($username) {
                 $mail->from(env('MAIL_USERNAME'), env('MAIL_FROM_NAME'))
