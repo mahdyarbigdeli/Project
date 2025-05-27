@@ -411,9 +411,9 @@ class UserController extends Controller
                 'body' => '
                 <div>
                     <div style="background-color:#1a1a1a; color:#ffffff; padding:30px; font-family:Tahoma, sans-serif; text-align:center;">
-                        <img src="https://bo.tamasha.me/images/logo.png" alt="Tamasha Logo" style="max-width:70px; margin-bottom:20px;" />
+                            <img src="https://bo.tamasha.me/images/logo.png" alt="Tamasha Logo" width="90" />
                     </div>
-                    <div style="margin-top:20px; background-color:#gray; padding:20px; border-radius:8px; display:inline-block; text-align:center;width:100%">
+                    <div style="margin-top:20px ; padding:20px; border-radius:8px; display:inline-block; text-align:center;width:100%">
                         <h2 style="color:#ffffff;">Thank you for your interest in Tamasha TV</h2>
                         <p style="font-size:16px; color:#dddddd;">با تشکر از شما برای انتخاب تماشا</p>
                         <div style="margin-top:20px; background-color:#1a1a1a; padding:20px; border-radius:8px; display:inline-block; text-align:left;">
