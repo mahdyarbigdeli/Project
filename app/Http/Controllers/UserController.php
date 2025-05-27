@@ -407,11 +407,22 @@ class UserController extends Controller
 
         try {
             $mailData = [
-                'title' => ' اطلاعات نام کاربری و رمز عبور',
-                'body' => 'به پلتفرم تماشا خوش آمدید<br>' .
-                    'نام کاربری: <span style="color:#ffffff;">' . ($safeEmail) . '</span><br>' .
-                    'رمز عبور: ' . htmlspecialchars($password) . '<br>' .
-                    'می‌باشد.'
+                'title' => 'اطلاعات نام کاربری و رمز عبور',
+                'body' => '
+                <div>
+                    <div style="background-color:#1a1a1a; color:#ffffff; padding:30px; font-family:Tahoma, sans-serif; text-align:center;">
+                        <img src="https://bo.tamasha.me/images/logo.png" alt="Tamasha Logo" style="max-width:70px; margin-bottom:20px;" />
+                    </div>
+                    <div style="margin-top:20px; background-color:#gray; padding:20px; border-radius:8px; display:inline-block; text-align:center;width:100%">
+                        <h2 style="color:#ffffff;">Thank you for your interest in Tamasha TV</h2>
+                        <p style="font-size:16px; color:#dddddd;">با تشکر از شما برای انتخاب تماشا</p>
+                        <div style="margin-top:20px; background-color:#1a1a1a; padding:20px; border-radius:8px; display:inline-block; text-align:left;">
+                            <p><strong>Username:</strong> <span style="color:#ffffff;">[' . $username . ']</span></p>
+                            <p><strong>Password:</strong> <span style="color:#ffffff;">[' . $password . ']</span></p>
+                        </div>
+                        <p style="font-size:16px; color:#dddddd;"> با معرفی هر یک از مشترکان جدید به  info@tamasha.me  یک ماه اشتراک اضافه رایگان دریافت نمایید </p>
+                    </div>
+                </div>'
             ];
             Mail::send('emails.userMail', ['mailData' => $mailData], function ($mail) use ($username) {
                 $mail->from(env('MAIL_USERNAME'), env('MAIL_FROM_NAME'))

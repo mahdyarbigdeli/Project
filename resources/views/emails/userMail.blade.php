@@ -17,9 +17,9 @@
 
         <hr style="border-color: #cccccc; margin: 30px 0;">
 
-        <p style="color: #666666; font-size: 14px;">
-            اگر این ایمیل به اشتباه برای شما ارسال شده است، لطفاً آن را نادیده بگیرید. در غیر این صورت، برای هرگونه سوال یا پشتیبانی با ما در تماس باشید.
-        </p>
+        <!-- <p style="color: #666666; font-size: 14px;">
+            با معرفی هر یک از مشترکان جدید به info@tamasha.me یک ماه اشتراک اضافه رایگان دریافت نمایید
+        </p> -->
 
         <p style="color: #777777; font-size: 13px; text-align: center; margin-top: 40px;">
             تمامی حقوق محفوظ است &copy; {{ date('Y') }} | {{ env('APP_NAME', 'نام سایت شما') }}
