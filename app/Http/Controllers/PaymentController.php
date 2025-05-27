@@ -216,6 +216,16 @@ class PaymentController extends Controller
 
                 break;
         }
+
+        $response = $this->updateUser($username, $password, $period);
+        // Log::info('PayPal API Data: ' . $subscription->price);
+
+        $data = $response->getData(true);
+        if (isset($data['error'])) {
+            return response()->json(['message' => 'Update failed', 'details' => $data['error']], 400);
+        }
+
+
         $panelUrl = "http://tamasha-tv.com:25461/userinfo.php";
         $postData = [
             'username' => $username,
@@ -226,13 +236,7 @@ class PaymentController extends Controller
             $apiResult = $response->json();
             $expire_date = $apiResult['data']['expire_date'];
         }
-        $response = $this->updateUser($username, $password, $period);
-        // Log::info('PayPal API Data: ' . $subscription->price);
 
-        $data = $response->getData(true);
-        if (isset($data['error'])) {
-            return response()->json(['message' => 'Update failed', 'details' => $data['error']], 400);
-        }
 
         $paid = $subscription->price;
         $package = $subscription->name_en;
@@ -256,6 +260,7 @@ class PaymentController extends Controller
                 ->to($username)
                 ->subject('پرداخت موفق');
         });
+
         // Log::info('PayPal API Data: Email sent');
         // $userSubscription = UserSubscription::where('username', $username)
         //     ->where('subscription_id', $subscriptionId)
