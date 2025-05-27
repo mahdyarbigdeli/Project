@@ -157,7 +157,6 @@ class PaymentController extends Controller
                 'status' => 'success',
                 'data' => $response->result,
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -225,11 +224,20 @@ class PaymentController extends Controller
             return response()->json(['message' => 'Update failed', 'details' => $data['error']], 400);
         }
 
+        $paid = $subscription->price;
+        $package = $subscription->name_en;
+        $expiryDate = $data['new_exp_date'];
+
         // Log::info('PayPal API Data: ' . $data);
         $mailData = [
             'title' => ' پرداخت موفق',
             'subject' => ' تایید پرداخت ',
-            'body' => 'خرید اشتراک شما با موفقیت انجام شد . با معرفی هر یک از مشترکان جدید به ما،‌یک ماه اشتراک اضافه رایگان دریافت نمایید'
+            'body' =>
+            'خرید اشتراک شما با موفقیت انجام شد.<br>' .
+                'با معرفی هر یک از مشترکان جدید به ما، یک ماه اشتراک اضافه رایگان دریافت نمایید.<br><br>' .
+                '<strong>Paid  :</strong> ' . $paid . '<br>' .
+                '<strong>Package :</strong> ' . $package . '<br>' .
+                '<strong>Expiry Date :</strong> ' . $expiryDate
         ];
         Mail::send('emails.userMail', ['mailData' => $mailData], function ($mail) use ($username) {
             $mail->from(env('MAIL_USERNAME'), env('MAIL_FROM_NAME'))
@@ -237,6 +245,7 @@ class PaymentController extends Controller
                 ->subject('پرداخت موفق');
         });
 
+        dd($data);
         // Log::info('PayPal API Data: Email sent');
         // $userSubscription = UserSubscription::where('username', $username)
         //     ->where('subscription_id', $subscriptionId)
