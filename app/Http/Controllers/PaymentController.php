@@ -216,9 +216,19 @@ class PaymentController extends Controller
 
                 break;
         }
-
+        $panelUrl = "http://tamasha-tv.com:25461/userinfo.php";
+        $postData = [
+            'username' => $username,
+            'password' => $password,
+        ];
+        $response = Http::asForm()->post($panelUrl . "?username=" . $username . "&password=" . $password, $postData);
+        if ($response->successful()) {
+            $apiResult = $response->json();
+            $expire_date = $apiResult['data']['expire_date'];
+        }
         $response = $this->updateUser($username, $password, $period);
         // Log::info('PayPal API Data: ' . $subscription->price);
+
         $data = $response->getData(true);
         if (isset($data['error'])) {
             return response()->json(['message' => 'Update failed', 'details' => $data['error']], 400);
@@ -226,7 +236,7 @@ class PaymentController extends Controller
 
         $paid = $subscription->price;
         $package = $subscription->name_en;
-        $expiryDate = $data['new_exp_date'];
+        $expiryDate = $expire_date ?? 'Unknown';
 
         // Log::info('PayPal API Data: ' . $data);
         $mailData = [
@@ -235,17 +245,17 @@ class PaymentController extends Controller
             'body' =>
             'خرید اشتراک شما با موفقیت انجام شد.<br>' .
                 'با معرفی هر یک از مشترکان جدید به ما، یک ماه اشتراک اضافه رایگان دریافت نمایید.<br><br>' .
-                '<strong>Paid  :</strong> ' . $paid . '<br>' .
+                ' <div style="text-align: left;font-size:18px">' .
+                '<strong style="">Paid  :</strong> ' . $paid . '$' . '<br>' .
                 '<strong>Package :</strong> ' . $package . '<br>' .
-                '<strong>Expiry Date :</strong> ' . $expiryDate
+                '<strong>Expiry Date :</strong> ' . $expiryDate .
+                '</div><br>'
         ];
         Mail::send('emails.userMail', ['mailData' => $mailData], function ($mail) use ($username) {
             $mail->from(env('MAIL_USERNAME'), env('MAIL_FROM_NAME'))
                 ->to($username)
                 ->subject('پرداخت موفق');
         });
-
-        dd($data);
         // Log::info('PayPal API Data: Email sent');
         // $userSubscription = UserSubscription::where('username', $username)
         //     ->where('subscription_id', $subscriptionId)
